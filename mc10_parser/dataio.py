@@ -1,44 +1,73 @@
 """ MC10 data load and dump helpers """
 
-
+import multiprocessing as mp
 import numpy as np
+import os
 import pandas as pd
 import pathlib
 from pytz import timezone, utc
 import timeit
 
 
-def load(spec, time=False):
-    """ Loads and returns Session-formatted data from spec metadata. """
-    data = {}
-    types = ['accel', 'elec', 'gyro']
-    masks = [1, 2, 4]
+def load_folder(ns, job):
+    spec, time, (i, j, data_folder, t) = job
     # can use any of these timezones
     # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
     tz = timezone(spec['timezone'])
+    if time:
+        st = timeit.default_timer()
+    ns.data[data_folder][t] = pd.read_csv(
+        spec['loc'] + data_folder + f'/{t}.csv',
+        index_col=0,
+    )
+    print(ns.data[data_folder][t].head())
+    ns.data[data_folder][t].index = pd.to_datetime(
+        ns.data[data_folder][t].index, unit='us'
+    )
+    print(pd.to_datetime(
+        ns.data[data_folder][t].index, unit='us'
+    ).head())
+    print(ns.data[data_folder][t].head())
+    ns.data[data_folder][t].index = ns.data[data_folder][t]. \
+        index.tz_localize(utc).tz_convert(tz)
+    if time:
+        print(
+            f"Loaded {data_folder} {t} in "
+            f"{timeit.default_timer() - st} s"
+        )
+    return data_folder, t, ns.data[data_folder][t]
+
+
+def load(spec, time=False):
+    """ Loads and returns Session-formatted data from spec metadata. """
+    manager = mp.Manager()
+    ns = manager.Namespace()
+    ns.data = {}
+    masks = [1, 2, 4]
+    types = ['accel', 'elec', 'gyro']
 
     if time:
         t0 = timeit.default_timer()
+
+    jobs = []
     for i, data_folder in enumerate(spec['folders']):
-        data[data_folder] = {}
+        ns.data[data_folder] = {}
         for j, t in enumerate(types):
             if spec['types'][i] & masks[j]:
-                if time:
-                    st = timeit.default_timer()
-                data[data_folder][t] = pd.read_csv(
-                    spec['loc'] + data_folder + f'/{t}.csv',
-                    index_col=0,
-                )
-                data[data_folder][t].index = pd.to_datetime(
-                    data[data_folder][t].index, unit='us'
-                )
-                data[data_folder][t].index = data[data_folder][t]. \
-                    index.tz_localize(utc).tz_convert(tz)
-                if time:
-                    print(
-                        f"Loaded {data_folder} {t} in "
-                        f"{timeit.default_timer() - st} s"
-                    )
+
+                jobs.append((spec, time, (i, j, data_folder, t)))
+
+    processes = []
+    for i in range(len(jobs)):
+        p = mp.Process(target=load_folder, args=(ns, jobs[i]))
+        processes.append(p)
+
+    [x.start() for x in processes]
+    for x in processes:
+        x.join()
+
+    # print(data)
+
     if time:
         print(f"Data loaded in {timeit.default_timer() - t0} s")
 
