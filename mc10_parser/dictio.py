@@ -1,6 +1,7 @@
 """ Metadata dict load and dump helpers """
 
 import json
+import os
 
 """Metadata dict manipulation functions"""
 def dict_to_file(d, fp):
@@ -28,7 +29,13 @@ def data_dict_from_file(filepath):
     d = dict_from_file(filepath)
 
     if d.get('template_path'):
-        td = dict_from_file(d['template_path'])
+        if d['template_path'][0]== '/':
+            tfp = d['template_path']
+        else:
+            tfp = os.path.normpath(
+                os.path.join(os.path.dirname(filepath), d['template_path'])
+            )
+        td = dict_from_file(tfp)
         d = dict(list(td.items()) + list(d.items()))
 
     return d

@@ -2,10 +2,10 @@
 
 ## Installation and Setup
 
-### python and dependencies (Linux)
-Feel free to skip ahead if you have your own method of managing Python/virtualenvs
+### Python and dependencies (Linux)
+Feel free to skip ahead to the next section if you have your own method of managing Python/virtualenvs
 
-#### python
+#### Python 3.7
 ```
 sudo apt update
 sudo apt install software-properties-common
@@ -32,11 +32,39 @@ pyenv virtualenvwrapper
 pyenv virtualenv mc10-parser
 ```
 
-## Formatting Data
+## Usage
 
-### Metadata and Tempalte files
+### Metadata and Template files
+Data must be formatted in a structure as follows:
+
+```
+study
+│   template.json (optional)
+└───subject 1
+│   │   metadata.json (required)
+│   └───heart
+│   │       accel.csv
+│   │       elec.csv
+│   │
+│   └───left-thigh
+│           accel.csv
+│
+└───subject 2
+    │   metadata.json (required)
+    └───heart
+    │       accel.csv
+    │       elec.csv
+    │
+    └───right-thigh
+            accel.csv
+```
+
+The metadata.json file supports the following fields:
+
+
 An example template file has been included in `examples/data/test_experiment/template.json`
 An example metadata file has been included in `examples/data/test_experiment/test_subject/metadata.json`
+When patched together, these
 ```
 {
     "meta": "annotations.csv",
@@ -72,8 +100,6 @@ An example metadata file has been included in `examples/data/test_experiment/tes
     "timezone": "America/New_York"
 }
 ```
-
-## mc10_parser package
 
 
 ## Date Shifting

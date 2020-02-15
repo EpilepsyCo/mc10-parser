@@ -1,5 +1,6 @@
 """ MC10 data file loading, manipulation, and saving """
 
+import os
 import pathlib
 import re
 
@@ -30,6 +31,7 @@ class Session:
         """
         assert(isinstance(filepath, str))
         metadata = data_dict_from_file(filepath)
+        metadata['loc'] = os.path.dirname(filepath) + '/'
         return metadata, io_load(metadata, time=time)
 
     def dump(self, filepath, time=False):
@@ -50,6 +52,7 @@ class Session:
             parents=True, exist_ok=True
         )
         data_dict_to_file(self.metadata, filepath)
+        self.metadata['loc'] = os.path.dirname(filepath) + '/'
         io_dump(self.metadata, self.data, time=time)
 
     def date_shift(self, target_date):

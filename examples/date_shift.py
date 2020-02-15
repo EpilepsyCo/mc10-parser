@@ -1,28 +1,36 @@
+import argparse
 import datetime
 import numpy as np
 
 from mc10_parser import Session
 
-basepath = '/Users/sabard/dev/cloud/'
+# parse basepath
+parser = argparse.ArgumentParser()
+parser.add_argument('-p', '--basepath')
+args = parser.parse_args()
+
+# add '/' to end of basepath if necessary
+basepath = args.basepath
+if basepath[-1] != '/':
+    basepath += '/'
+
+# data location
 metadata_locs = {
-    # carolyn tap test 1
-    'time_test_1_CW':
-        basepath + 'mc10/data/penn_time_align/test_1/CW/metadata.json',
+    # unshifted test subject
+    'test_subject':
+        basepath + 'test_study/test_subject/metadata.json',
 
-    # van tap test 1
-    'time_test_1_VT':
-        basepath + 'mc10/data/penn_time_align/test_1/VT/metadata.json',
-
-    'save_path':
-        basepath + 'mc10_parser/examples/data/e1/CW/metadata.json'
+    # shifted test subject
+    'test_subject_shifted':
+        basepath + 'test_study/test_subject_shfited/metadata.json',
 }
 
-s1 = Session(metadata_locs['time_test_1_CW'], time=True)
+s1 = Session(metadata_locs['test_subject'], time=True)
 date = datetime.date(2000, 1, 1)  # Y, M, D format
 s1.date_shift(date)
-s1.dump(metadata_locs['save_path'], time=True)
+s1.dump(metadata_locs['test_subject_shifted'], time=True)
 
-s2 = Session(metadata_locs['save_path'])
+s2 = Session(metadata_locs['test_subject_shifted'])
 
 # check equality of data loaded in after time shift
 for k1 in s1.data.keys():

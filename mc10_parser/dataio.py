@@ -26,7 +26,7 @@ def load(spec, time=False):
                 if time:
                     st = timeit.default_timer()
                 data[data_folder][t] = pd.read_csv(
-                    spec['loc'] + data_folder + f'/{t}.csv',
+                    f"{spec['loc']}{data_folder}/{t}.csv",
                     index_col=0,
                 )
                 data[data_folder][t].index = pd.to_datetime(
