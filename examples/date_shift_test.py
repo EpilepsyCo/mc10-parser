@@ -23,12 +23,14 @@ date = datetime.date(2000, 1, 1)  # Y, M, D format
 s1.date_shift(date)
 s1.dump(args.outpath, time=True)
 
-# Load in output dataset
-s2 = Session(args.outpath)
 
-# check equality of data loaded in after time shift
-for k1 in s1.data.keys():
-    for k2 in s1.data[k1].keys():
-        df1 = s1.data[k1][k2]
-        df2 = s2.data[k1][k2]
-        assert((df1.ge(df2) | np.isclose(df1, df2)).all().all())
+if args.verify:
+    # Load in output dataset
+    s2 = Session(args.outpath)
+
+    # check equality of data loaded in after time shift
+    for k1 in s1.data.keys():
+        for k2 in s1.data[k1].keys():
+            df1 = s1.data[k1][k2]
+            df2 = s2.data[k1][k2]
+            assert((df1.ge(df2) | np.isclose(df1, df2)).all().all())
