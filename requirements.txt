@@ -1,7 +1,13 @@
+boto3==1.12.1
+botocore==1.15.1
+docutils==0.15.2
+jmespath==0.9.4
 # Editable install with no version control (mc10-parser==0.0.1)
 -e /Users/sabard/.pyenv/versions/3.7.3/envs/mc10_parser/lib/python3.7/site-packages
 numpy==1.18.1
 pandas==1.0.1
 python-dateutil==2.8.1
 pytz==2019.3
+s3transfer==0.3.3
 six==1.14.0
+urllib3==1.25.8
