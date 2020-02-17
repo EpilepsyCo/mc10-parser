@@ -74,7 +74,9 @@ required fields
 ---
 folders (list of strings): Folder names in this directory that contain
     MC10 data.
-sampling_rates (list of floats): Sampling rate for each folder in order.
+sampling_rates (list of list of floats): Sampling rates for each folder in
+    order. Nested list should be ordered with accelerometer first, then
+    electrode, then gyroscope sampling rate, omitting any as necessary.
 types (list of bitmask ints): Int representation of bitmask describing data
     types for data in each folder. In binary, 001 is accel, 010 is elec,
     and 100 is gyro. Add these masks together for sensors recording multiple
@@ -84,18 +86,19 @@ timezone (string) : Timezone in which this session was recorded.
 
 optional fields
 ---
+meta (string): If applicable, the file containing annotations for this dataset.
+ann_names (list of strings): Names of annotations of interest.
 labels (list of strings): Abbreviated names of folders for pandas dataframe
     columns.
 accel_labels (list of strings): Dimension labels for pandas dataframe column.
-ann_names (list of strings): Names of annotations of interest.
-meta (string): If applicable, the file containing annotations for this dataset
 time_comp (string, requires labels): Label of the sensor used for doing time
     comparison.
+template_path (string): Relative (preferred) or absolute path to template file.
 ---
 ```
 Supported timezones can be found on [this Wikipedia list](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
 
-Here is an example configuration file for three accelerometers collecting data frorm the thigh, hand, and chest locations at 31.25, 250.0, and 31.25 Hz, respectively. The thigh and hand have type 1 since they just recorded accelerometer data and the chest has type 3 since it records accelerometer and electrode data.
+Here is an example configuration file for three accelerometers collecting data from the thigh, hand, and chest locations with acceleromters at 31.25, 250, and 31.25 Hz, respectively and electrodes at 250 Hz. The thigh and hand have type 1 since they just recorded accelerometer data and the chest has type 3 since it records accelerometer and electrode data.
 ```
 {
     "meta": "annotations.csv",
@@ -108,9 +111,9 @@ Here is an example configuration file for three accelerometers collecting data f
         "ecg_lead_ii"
     ],
     "sampling_rates": [
-        31.25,
-        250.0,
-        31.25
+        [31.25],
+        [250.0],
+        [31.25, 250.0]
     ],
     "types": [
         1,
@@ -132,7 +135,7 @@ Here is an example configuration file for three accelerometers collecting data f
 }
 ```
 
-These metadata files can be broken up into a template file and a metadata file. The template file can be placed anywhere as long as the location is referenced in the metadata file under WRITE ABOUT THE TEPMLATE_LOC!!!. The metadatafile must be placed in the directory containing the data files. This allows common metadata files to share one template.
+These metadata files can be broken up into a template file and a metadata file. The template file can be placed anywhere as long as the location is referenced in the metadata file under `template_path`. The metadatafile must be placed in the directory containing the data files. This allows common metadata files to share one template.
 
 Example data has been included in examples/data. There is a template file in `examples/data/test_experiment/template.json` and a metadata file in `examples/data/test_experiment/test_subject/metadata.json`
 
@@ -141,7 +144,15 @@ Example data has been included in examples/data. There is a template file in `ex
 From your virtualenv with dependencies installed, run:
 
 ```
-python examples/date_shift.py -p /path/to/repo/examples/data
+python examples/date_shift_test.py \
+    -p /path/to/repo/examples/data/test_study/metadata.json \
+    -o /path/to/repo/examples/data/test_study_test_subject_shifted/metadata.json
 ```
 
 This will create a test_subject_shifted folder with the date shifted data.
+
+To date shift data stored at `/path/to/data/` and upload it to our S3 bucket, run:
+
+```
+python examples/date_shift_s3.py -p /path/to/data/metadata.json
+```

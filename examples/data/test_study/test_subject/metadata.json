@@ -1,7 +1,7 @@
 {
     "template_path": "../template.json",
-    "sampling_rates": [
-        250.0,
-        250.0
+    "accel_sampling_rates": [
+        [250.0],
+        [250.0]
     ]
 }
