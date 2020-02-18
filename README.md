@@ -7,6 +7,13 @@ Feel free to skip ahead to the next section if you have your own method of manag
 
 #### Fedora (Red Hat, etc.)
 
+##### git-lfs
+```
+curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.rpm.sh | sudo bash
+sudo yum install -y git-lfs
+git lfs install
+```
+
 ##### pyenv and python 3.7
 ```
 curl https://pyenv.run | bash
@@ -69,13 +76,15 @@ First, clone the repository:
 ```
 git clone https://github.com/EpilepsyCo/mc10_parser
 cd mc10_parser
+git lfs pull
 ```
 
 Activate your virtualenv and install Python packages:
 
 ```
 pyenv activate mc10-parser
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
+python -m pip install .
 ```
 
 
@@ -187,7 +196,7 @@ From your virtualenv with dependencies installed, run:
 
 ```
 python examples/date_shift_test.py \
-    -p /path/to/repo/examples/data/test_study/metadata.json \
+    -p /path/to/repo/examples/data/test_study/test_subject/metadata.json \
     -o /path/to/repo/examples/data/test_study_test_subject_shifted/metadata.json
 ```
 
