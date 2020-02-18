@@ -206,7 +206,7 @@ To date shift data stored at `/path/to/data/` and upload it to our S3 bucket, ru
 
 ```
 python examples/date_shift_s3.py \
-    -p /path/to/data/metadata.json
+    -p /path/to/data/metadata.json \
     --access-key <AWS_ACCESS_KEY> \
     --secret-key <AWS_SECRET_KEY> \
     -b eeg-accel-data-upenn
