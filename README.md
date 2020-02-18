@@ -5,42 +5,82 @@
 ### Python and dependencies (Linux)
 Feel free to skip ahead to the next section if you have your own method of managing Python/virtualenvs
 
-#### Python 3.7
-```
-sudo apt update
-sudo apt install software-properties-common
-sudo add-apt-repository ppa:deadsnakes/ppa
-sudo apt install python3.7
-```
+#### Fedora (Red Hat, etc.)
 
-#### pyenv
+##### pyenv and python 3.7
 ```
 curl https://pyenv.run | bash
-exec $SHELL
 ```
 
-#### pyenv-virtualenvwrapper
+Then, add the following to your `~/.bashrc`
+
+```
+export PATH="/home/ec2-user/.pyenv/bin:$PATH"
+eval "$(pyenv init -)"
+eval "$(pyenv virtualenv-init -)"
+```
+
+and run:
+
+```
+exec $SHELL
+pyenv install 3.7.3 -v
+pyenv global 3.7.3
+```
+
+##### pyenv-virtualenvwrapper
 ```
 git clone https://github.com/pyenv/pyenv-virtualenvwrapper.git $(pyenv root)/plugins/pyenv-virtualenvwrapper
 ```
 
-### Creating a `virtualenv`
+##### Creating a `virtualenv`
 
 ```
 pyenv virtualenvwrapper
 pyenv virtualenv mc10-parser
 ```
 
+#### Debian (Ubuntu, etc.)
+
+##### pyenv and Python 3.7
+```
+curl https://pyenv.run | bash
+exec $SHELL
+pyenv install 3.7.3 -v
+pyenv global 3.7.3
+```
+
+##### pyenv-virtualenvwrapper
+```
+git clone https://github.com/pyenv/pyenv-virtualenvwrapper.git $(pyenv root)/plugins/pyenv-virtualenvwrapper
+```
+
+##### Creating and activating a `virtualenv`
+
+```
+pyenv virtualenvwrapper
+pyenv virtualenv mc10-parser
+```
+
+### Package and dependencies
+
+First, clone the repository:
+
+```
+git clone https://github.com/EpilepsyCo/mc10_parser
+cd mc10_parser
+```
+
+Activate your virtualenv and install Python packages:
+
+```
+pyenv activate mc10-parser
+pip install -r requirements.txt
+```
+
+
 ## Usage
 
-### Installing dependencies
-
-From your virtualenv, run:
-
-```
-pip install -r requirements.txt
-
-```
 
 ### Metadata and Template files
 Data must be formatted in a structure as follows:
@@ -93,6 +133,7 @@ labels (list of strings): Abbreviated names of folders for pandas dataframe
 accel_labels (list of strings): Dimension labels for pandas dataframe column.
 time_comp (string, requires labels): Label of the sensor used for doing time
     comparison.
+loc (string): Relative (preferred for s3) or absolute path to metadata file.
 template_path (string): Relative (preferred) or absolute path to template file.
 ---
 ```
@@ -135,9 +176,10 @@ Here is an example configuration file for three accelerometers collecting data f
 }
 ```
 
-These metadata files can be broken up into a template file and a metadata file. The template file can be placed anywhere as long as the location is referenced in the metadata file under `template_path`. The metadatafile must be placed in the directory containing the data files. This allows common metadata files to share one template.
+These metadata files can be broken up into a template file and a metadata file. The template file can be placed anywhere as long as the location is referenced in the metadata file under `template_path`. The metadata file must be placed in the directory containing the data files with filename `metadata.json`. This allows common metadata files to share one template.
 
 Example data has been included in examples/data. There is a template file in `examples/data/test_experiment/template.json` and a metadata file in `examples/data/test_experiment/test_subject/metadata.json`
+
 
 ## Date Shifting
 
@@ -154,5 +196,10 @@ This will create a test_subject_shifted folder with the date shifted data.
 To date shift data stored at `/path/to/data/` and upload it to our S3 bucket, run:
 
 ```
-python examples/date_shift_s3.py -p /path/to/data/metadata.json
+python examples/date_shift_s3.py \
+    -p /path/to/data/metadata.json
+    --access-key <AWS_ACCESS_KEY> \
+    --secret-key <AWS_SECRET_KEY> \
+    -b eeg-accel-data-upenn
+    -o test_study/test_subject_shifted/metadata.json
 ```

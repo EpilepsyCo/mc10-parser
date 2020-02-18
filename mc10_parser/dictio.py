@@ -10,6 +10,7 @@ def dict_to_file(d, fp):
     with open(fp, 'w') as f:
         json.dump(d, f, sort_keys=False, indent=4)
 
+
 def data_dict_to_file(d, filepath, template=None, template_path=""):
     """Write JSON serializable dicts d and template to filepath and template_path, respectively"""
 
@@ -18,11 +19,21 @@ def data_dict_to_file(d, filepath, template=None, template_path=""):
     if template:
         dict_to_file(template, template_path)
 
+
+def data_dict_to_s3(s3_resource, bucket_name, d, filename):
+    """Write JSON serializable dict d to filepath on s3_resource """
+
+    s3_resource.Object(
+        bucket_name, d['loc'] + filename
+    ).put(Body=json.dumps(d))
+
+
 def dict_from_file(fp):
     """Load JSON serialized dict from filepath fp"""
 
     with open(fp, 'r') as f:
         return json.load(f)
+
 
 def data_dict_from_file(filepath):
     """Read JSON serialized dict from filepath, loading values from template if applicable"""
