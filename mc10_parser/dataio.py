@@ -5,10 +5,11 @@ import numpy as np
 import pandas as pd
 import pathlib
 from pytz import timezone, utc
+from s3fs.core import S3FileSystem
 import timeit
 
 
-def load(spec, time=False):
+def load(spec, s3=None, time=False):
     """ Loads and returns Session-formatted data from spec metadata. """
     data = {}
     types = ['accel', 'elec', 'gyro']
@@ -25,15 +26,29 @@ def load(spec, time=False):
             if spec['types'][i] & masks[j]:
                 if time:
                     st = timeit.default_timer()
-                data[data_folder][t] = pd.read_csv(
-                    f"{spec['loc']}{data_folder}/{t}.csv",
-                    index_col=0,
-                )
+
+                file_loc = f"{spec['loc']}{data_folder}/{t}.csv"
+                if s3:
+                    fs = S3FileSystem(
+                        anon=False,
+                        key=s3['creds']['access_key'],
+                        secret=s3['creds']['secret_key']
+                    )
+                    data[data_folder][t] = pd.read_csv(
+                        f"s3://{s3['bucket_name']}/{file_loc}",
+                        index_col=0
+                    )
+                else:
+                    data[data_folder][t] = pd.read_csv(
+                        file_loc,
+                        index_col=0,
+                    )
                 data[data_folder][t].index = pd.to_datetime(
                     data[data_folder][t].index, unit='us'
                 )
                 data[data_folder][t].index = data[data_folder][t]. \
                     index.tz_localize(utc).tz_convert(tz)
+
                 if time:
                     print(
                         f"Loaded {data_folder} {t} in "
@@ -45,57 +60,64 @@ def load(spec, time=False):
     return data
 
 
-def dump(spec, data, time=False):
-    """ Dumps Session data to file as specified by spec metadata. """
+def load_local(spec, time=False):
+    """ Load Session from local filesystem. """
+    return load(spec, time=time)
+
+
+def load_s3(s3_creds, s3_bucket_name, spec, time=False):
+    """ Load Session from S3. """
+    return load(spec, time=time, s3={
+        'creds': s3_creds,
+        'bucket_name': s3_bucket_name
+    })
+
+
+def dump(spec, data, s3=None, time=False):
+    """ Dumps data to filesystem or S3 as specified by spec metadata. """
     if time:
         t0 = timeit.default_timer()
-    for i, k1 in enumerate(data.keys()):
-        for k2 in data[k1].keys():
-            if time:
-                st = timeit.default_timer()
+        for i, k1 in enumerate(data.keys()):
+            for k2 in data[k1].keys():
+                if time:
+                    st = timeit.default_timer()
 
-            df = data[k1][k2]
-            file_loc = spec['loc'] + k1
-            old_index = df.index
-            df.set_index(df.index.astype(np.int64)//1000, inplace=True)
-            pathlib.Path(file_loc).mkdir(parents=True, exist_ok=True)
-            df.to_csv(file_loc + f'/{k2}.csv')
-            df.set_index(old_index, inplace=True)
+                df = data[k1][k2]
+                file_loc = f"{spec['loc']}{k1}/"
+                filename = f'{k2}.csv'
+                old_index = df.index
+                df.set_index(df.index.astype(np.int64)//1000, inplace=True)
 
-            if time:
-                print(
-                    f"Saved {k1} {k2} in "
-                    f"{timeit.default_timer() - st} s"
-                )
+                if s3:
+                    csv_buffer = StringIO()
+                    df.to_csv(csv_buffer)
+                    s3['resource'].Object(
+                        s3['bucket_name'],
+                        file_loc + filename
+                    ).put(Body=csv_buffer.getvalue())
+                else:
+                    pathlib.Path(file_loc).mkdir(parents=True, exist_ok=True)
+                    df.to_csv(file_loc + filename)
+
+                df.set_index(old_index, inplace=True)
+
+                if time:
+                    print(
+                        f"Saved {k1} {k2} in "
+                        f"{timeit.default_timer() - st} s"
+                    )
     if time:
         print(f"Data saved in {timeit.default_timer() - t0} s")
 
 
-def dump_s3(s3_resource, bucket_name, spec, data, time=False):
-    if time:
-        t0 = timeit.default_timer()
-    for i, k1 in enumerate(data.keys()):
-        for k2 in data[k1].keys():
-            if time:
-                st = timeit.default_timer()
+def dump_local(spec, data, time=False):
+    """ Dump Session to local filesystem. """
+    dump(spec, data, time=time)
 
-            df = data[k1][k2]
-            old_index = df.index
-            df.set_index(df.index.astype(np.int64)//1000, inplace=True)
-            csv_buffer = StringIO()
-            df.to_csv(csv_buffer)
-            file_loc = spec['loc'] + k1
-            df.set_index(old_index, inplace=True)
-            s3_resource.Object(
-                bucket_name,
-                file_loc
-            ).put(Body=csv_buffer.getvalue())
 
-            if time:
-                print(
-                    f"Saved {k1} {k2} in "
-                    f"{timeit.default_timer() - st} s"
-                )
-
-    if time:
-        print(f"Data saved in {timeit.default_timer() - t0} s")
+def dump_s3(s3_resource, s3_bucket_name, spec, data, time=False):
+    """ Dump Session to S3. """
+    dump(spec, data, time=time, s3={
+        'resource': s3_resource,
+        'bucket_name': s3_bucket_name
+    })

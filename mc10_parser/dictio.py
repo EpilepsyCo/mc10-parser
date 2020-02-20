@@ -50,3 +50,12 @@ def data_dict_from_file(filepath):
         d = dict(list(td.items()) + list(d.items()))
 
     return d
+
+
+def data_dict_from_s3(s3_resource, bucket_name, filename):
+    """Read JSON serializable dict d from filepath on s3_resource """
+
+    response = s3_resource.Object(
+        bucket_name, filename
+    ).get()
+    return json.loads(response['Body'].read())
