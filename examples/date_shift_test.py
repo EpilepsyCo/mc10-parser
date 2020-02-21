@@ -23,8 +23,7 @@ date = datetime.date(2000, 1, 1)  # Y, M, D format
 s1.date_shift(date)
 s1.dump(args.outpath, time=True)
 
-print(s1.annotations)
-
+# load in dumped session and verify equality
 if args.verify:
     # Load in output dataset
     s2 = Session(args.outpath)

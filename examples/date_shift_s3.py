@@ -14,6 +14,7 @@ parser.add_argument('--secret-key', help='AWS Secret Access Key')
 parser.add_argument('-o', '--outpath', help='Output filepath')
 args = parser.parse_args()
 
+# load session, date shift, and dump it to s3
 s1 = Session.fromlocal(args.inpath, time=True)
 date = datetime.date(2000, 1, 1)  # Y, M, D format
 s1.date_shift(date)

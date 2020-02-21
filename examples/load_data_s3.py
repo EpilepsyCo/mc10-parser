@@ -12,6 +12,10 @@ parser.add_argument('--access-key', help='AWS Public Access Key')
 parser.add_argument('--secret-key', help='AWS Secret Access Key')
 args = parser.parse_args()
 
+# load session from S3
 s1 = Session.froms3(
     args.bucket_name, args.access_key, args.secret_key, args.inpath, time=True
 )
+
+# print session data
+print(s1.data)

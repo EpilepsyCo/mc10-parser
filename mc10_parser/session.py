@@ -69,7 +69,7 @@ class Session:
             filepath (string): Full path to metadata file.
 
         Keyword Arguments:
-            time (bool): set True to print elapsed time
+            time (bool): set True to print elapsed time.
 
         Returns:
             dict: Metadata dictionary for the loaded session.
@@ -88,7 +88,8 @@ class Session:
             filepath (string): Full path to metadata file.
 
         Keyword Arguments:
-            time (bool): set True to print elapsed time
+            bucket_name (string): S3 bucket to write to.
+            time (bool): set True to print elapsed time.
 
         Returns:
             dict: Metadata dictionary for the loaded session.
