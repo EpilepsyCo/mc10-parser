@@ -146,7 +146,7 @@ loc (string): Relative (preferred for s3) or absolute path to metadata file.
 template_path (string): Relative (preferred) or absolute path to template file.
 ---
 ```
-Supported timezones can be found on [this Wikipedia list](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
+Supported timezones can be found on [this Wikipedia list](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) under **TZ database name**.
 
 Here is an example configuration file for three accelerometers collecting data from the thigh, hand, and chest locations with acceleromters at 31.25, 250, and 31.25 Hz, respectively and electrodes at 250 Hz. The thigh and hand have type 1 since they just recorded accelerometer data and the chest has type 3 since it records accelerometer and electrode data.
 ```
@@ -206,7 +206,7 @@ To date shift data stored at `/path/to/data/` and upload it to our S3 bucket, ru
 
 ```
 python examples/date_shift_s3.py \
-    -p /path/to/data/metadata.json
+    -p /path/to/data/metadata.json \
     --access-key <AWS_ACCESS_KEY> \
     --secret-key <AWS_SECRET_KEY> \
     -b eeg-accel-data-upenn
