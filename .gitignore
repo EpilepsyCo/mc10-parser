@@ -2,3 +2,4 @@
 __pycache__
 .DS_Store
 examples/data/test_study/test_subject_shifted/
+examples/data/realistic_study

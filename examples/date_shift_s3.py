@@ -18,5 +18,4 @@ s1 = Session.fromlocal(args.inpath, time=True)
 date = datetime.date(2000, 1, 1)  # Y, M, D format
 s1.date_shift(date)
 s1.setup_s3(args.access_key, args.secret_key)
-print(s1.data)
 s1.dump_s3(args.bucket_name, args.outpath, time=True)

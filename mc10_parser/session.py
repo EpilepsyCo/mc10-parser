@@ -26,13 +26,15 @@ class Session:
         """ Initialize Session by loading data from filepath. """
         if s3_dict:
             self.setup_s3(s3_dict['access_key'], s3_dict['secret_key'])
-            self.metadata, self.data = self.load_s3(
+            self.metadata, self.data, self.annotations = self.load_s3(
                 s3_dict['bucket_name'], filepath, time=time
             )
         else:
             self.s3_session = None
             self.s3_resource = None
-            self.metadata, self.data = self.load(filepath, time=time)
+            self.metadata, self.data, self.annotations = self.load(
+                filepath, time=time
+            )
 
     @classmethod
     def fromlocal(cls, filepath, time=False):
@@ -77,7 +79,7 @@ class Session:
         assert(isinstance(filepath, str))
         metadata = data_dict_from_file(filepath)
         metadata['loc'] = os.path.dirname(filepath) + '/'
-        return metadata, io_load_local(metadata, time=time)
+        return (metadata, *io_load_local(metadata, time=time))
 
     def load_s3(self, bucket_name, filepath, time=False):
         """ Load Session from metadata specified at S3 location.
@@ -97,9 +99,9 @@ class Session:
         assert(self.s3_session and self.s3_resource)
 
         metadata = data_dict_from_s3(self.s3_resource, bucket_name, filepath)
-        return metadata, io_load_s3(
+        return (metadata, *io_load_s3(
             self.s3_creds, bucket_name, metadata, time=time
-        )
+        ))
 
     def dump(self, filepath, time=False):
         """ Dump Session as specified by metadata at filepath.
@@ -121,7 +123,7 @@ class Session:
         )
         data_dict_to_file(self.metadata, filepath)
         self.metadata['loc'] = os.path.dirname(filepath) + '/'
-        io_dump_local(self.metadata, self.data, time=time)
+        io_dump_local(self.metadata, self.data, self.annotations, time=time)
 
     def dump_s3(self, bucket_name, filepath, time=False):
         """ Dump Session as specified by metadata at filepath.
@@ -150,6 +152,7 @@ class Session:
             bucket_name,
             self.metadata,
             self.data,
+            self.annotations,
             time=time
         )
 

@@ -15,5 +15,3 @@ args = parser.parse_args()
 s1 = Session.froms3(
     args.bucket_name, args.access_key, args.secret_key, args.inpath, time=True
 )
-
-print(s1)
