@@ -1,10 +1,24 @@
-# https://github.com/pypa/sampleproject/blob/master/setup.py
-
 from setuptools import setup
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(
-    name='mc10-parser',
-    version='0.0.1',
-    # packages=['mc10-parser'],
-    py_modules=['mc10_parser']
+    name='mc10_parser',
+    version='0.0.2',
+    license='MIT,',
+    description='Data IO and parsing for MC10 BioStamp Sensors',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    author='Sabar Dasgupta',
+    author_email='sdasgupta@epilepsyco.com',
+    install_requires=[
+        'boto3',
+        'numpy',
+        'pandas',
+        'pytz',
+        's3fs',
+    ],
+    packages=['mc10_parser'],
+    python_requires='>=3.7.3'
 )

@@ -1,5 +1,12 @@
+# Python
 *.egg-info
 __pycache__
+build/
+dist
+
+# Mac
 .DS_Store
+
+# repo-specific
 examples/data/test_study/test_subject_shifted/
 examples/data/realistic_study
