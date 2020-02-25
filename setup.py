@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='mc10_parser',
-    version='0.0.4',
+    version='0.0.2',
     license='MIT,',
     description='Data IO and parsing for MC10 BioStamp Sensors',
     long_description=long_description,
@@ -19,6 +19,6 @@ setup(
         'pytz',
         's3fs',
     ],
-    py_modules=['mc10_parser'],
+    packages=['mc10_parser'],
     python_requires='>=3.7.3'
 )
