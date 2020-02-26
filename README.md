@@ -209,6 +209,6 @@ python examples/date_shift_s3.py \
     -p /path/to/data/metadata.json \
     --access-key <AWS_ACCESS_KEY> \
     --secret-key <AWS_SECRET_KEY> \
-    -b eeg-accel-data-upenn
+    -b epico-acceldata-upenn
     -o test_study/test_subject_shifted/metadata.json
 ```
