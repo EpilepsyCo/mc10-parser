@@ -40,32 +40,45 @@ def load(spec, s3=None, time=False):
                 index_col=0,
             )
 
-    for i, data_folder in enumerate(spec['folders']):
-        data[data_folder] = {}
+    for i, folder in enumerate(spec['folders']):
         for j, t in enumerate(types):
             if spec['types'][i] & masks[j]:
                 if time:
                     st = timeit.default_timer()
-                file_path = f"{spec['loc']}{data_folder}/{t}.csv"
-                if s3:
-                    data[data_folder][t] = pd.read_csv(
-                        s3_prefix + file_path,
-                        index_col=0
-                    )
+                if spec.get('segments'):
+                    data_folders = list(map(
+                        lambda x: f"{folder}_{x}",
+                        range(spec['segments'])
+                    ))
+                    file_paths = list(map(
+                        lambda d: f"{spec['loc']}{d}/{t}.csv",
+                        data_folders,
+                    ))
                 else:
-                    data[data_folder][t] = pd.read_csv(
-                        file_path,
-                        index_col=0,
+                    data_folders = [folder]
+                    file_paths = [f"{spec['loc']}{folder}/{t}.csv"]
+                for file_path, data_folder in zip(file_paths, data_folders):
+                    if not data.get(data_folder):
+                        data[data_folder] = {}
+                    if s3:
+                        data[data_folder][t] = pd.read_csv(
+                            s3_prefix + file_path,
+                            index_col=0
+                        )
+                    else:
+                        data[data_folder][t] = pd.read_csv(
+                            file_path,
+                            index_col=0,
+                        )
+                    data[data_folder][t].index = pd.to_datetime(
+                        data[data_folder][t].index, unit='us'
                     )
-                data[data_folder][t].index = pd.to_datetime(
-                    data[data_folder][t].index, unit='us'
-                )
-                data[data_folder][t].index = data[data_folder][t]. \
-                    index.tz_localize(utc).tz_convert(tz)
+                    data[data_folder][t].index = data[data_folder][t]. \
+                        index.tz_localize(utc).tz_convert(tz)
 
                 if time:
                     print(
-                        f"Loaded {data_folder} {t} in "
+                        f"Loaded {folder} {t} in "
                         f"{timeit.default_timer() - st} s"
                     )
     if time:
