@@ -1,7 +1,28 @@
 {
-    "template_path": "../template.json",
-    "accel_sampling_rates": [
-        [250.0],
-        [250.0]
+    "folders": [
+        "left",
+        "right"
+    ],
+    "types": [
+        1,
+        1
+    ],
+    "labels": [
+        "l",
+        "r"
+    ],
+    "accel_labels": [
+        "x",
+        "y",
+        "z"
+    ],
+    "timezone": "America/Los_Angeles",
+    "sampling_rates": [
+        [
+            250.0
+        ],
+        [
+            250.0
+        ]
     ]
 }

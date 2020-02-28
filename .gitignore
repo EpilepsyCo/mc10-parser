@@ -8,5 +8,6 @@ dist
 .DS_Store
 
 # repo-specific
-examples/data/test_study/test_subject_shifted/
+examples/data/test_study/*_shifted/
 examples/data/realistic_study
+examples/data/multi_day

@@ -144,6 +144,10 @@ time_comp (string, requires labels): Label of the sensor used for doing time
     comparison.
 loc (string): Relative (preferred for s3) or absolute path to metadata file.
 template_path (string): Relative (preferred) or absolute path to template file.
+segments (int): Number of recording segments. Exepcts data folders names to be
+    suffixed with _0, _1, ... up to segments - 1.
+metrics_folder (string): Relative (preferred) or absolute path to metrics
+    folder.
 ---
 ```
 Supported timezones can be found on [this Wikipedia list](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) under **TZ database name**.
