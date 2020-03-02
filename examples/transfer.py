@@ -130,6 +130,8 @@ for subject in subjects:
     )
     num_recordings = recordings_response['size']
     recs = recordings_response['items']
+    if len(recs) == 0:
+        continue
 
     # Loop through recordings creating folder names
     rec_filenames = []
@@ -214,6 +216,7 @@ for subject in subjects:
 
         rec_files[rec_filenames[i]] = rec_file
         print(f"Loaded {rec_filenames[i]}")
+    print(rec_files)
 
     # Create subject data and metadata
     subject_data = {}

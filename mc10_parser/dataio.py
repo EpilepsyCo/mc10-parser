@@ -56,6 +56,7 @@ def load(spec, s3=None, time=False):
                         range(spec['segments'])
                     ))
                     if spec.get('data'):
+                        # TODO doesn't work when sensor applied to different sides
                         file_paths = \
                             [spec['data'][key][t] for key in data_folders]
                     else:
