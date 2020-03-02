@@ -213,6 +213,7 @@ for subject in subjects:
                 )
 
         rec_files[rec_filenames[i]] = rec_file
+        print(f"Loaded {rec_filenames[i]}")
 
     # Create subject data and metadata
     subject_data = {}
@@ -259,7 +260,9 @@ for subject in subjects:
     # pprint.pprint(subject_meta)
 
     # Load session
-    data[subject_identifier] = Session.frommem(subject_meta, subject_data)
+    data[subject_identifier] = Session.frommem(
+        subject_meta, subject_data, time=True
+    )
     data[subject_identifier].date_shift(shift_date)
     data[subject_identifier].setup_s3(args.access_key, args.secret_key)
     data[subject_identifier].dump_s3(
