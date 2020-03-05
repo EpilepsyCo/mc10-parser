@@ -128,12 +128,15 @@ s3_session = boto3.Session(
     aws_secret_access_key=args.secret_key,
 )
 s3_resource = s3_session.client('s3')
-s3_keys = s3_resource.list_objects_v2(Bucket=args.bucket_name)['Contents']
-study_path = f"{args.outpath}/{study['displayName']}/"
-subjects_seen = list(set([
-    k['Key'].split(study_path, 1)[1].split('/')[0]
-    for k in s3_keys if study_path in k['Key']
-]))
+s3_objects = s3_resource.list_objects_v2(Bucket=args.bucket_name)
+subjects_seen = []
+if s3_objects.get('Contents'):
+    s3_keys = s3_objects['Contents']
+    study_path = f"{args.outpath}/{study['displayName']}/"
+    subjects_seen = list(set([
+        k['Key'].split(study_path, 1)[1].split('/')[0]
+        for k in s3_keys if study_path in k['Key']
+    ]))
 subjects = [s for s in subjects_total if s['displayName'] not in subjects_seen]
 num_subjects = len(subjects)
 
