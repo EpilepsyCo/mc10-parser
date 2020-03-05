@@ -1,4 +1,5 @@
 import argparse
+import boto3
 from collections import OrderedDict
 import datetime
 from io import BytesIO
@@ -123,8 +124,28 @@ subjects_response = make_request(
     f"https://mc10cloud.com/api/v1/studies/{study['id']}/subjects",
     headers, auth=auth
 )
-num_subjects = subjects_response['size']
-subjects = subjects_response['items']
+num_subjects_total = subjects_response['size']
+subjects_total = subjects_response['items']
+
+# copy only uncopied subjects
+s3_session = boto3.Session(
+    aws_access_key_id=args.access_key,
+    aws_secret_access_key=args.secret_key,
+)
+s3_resource = s3_session.client('s3')
+s3_keys = s3_resource.list_objects_v2(Bucket=args.bucket_name)['Contents']
+study_path = f"{args.outpath}/{study['displayName']}/"
+subjects_seen = list(set([
+    k['Key'].split(study_path, 1)[1].split('/')[0]
+    for k in s3_keys if study_path in k['Key']
+]))
+subjects = [s for s in subjects_total if s['displayName'] not in subjects_seen]
+num_subjects = len(subjects)
+
+if num_subjects == 0:
+    print("All subjects alreday transferred.")
+print(f"There are {num_subjects_total} subjects in total. "
+      f"Transferring {num_subjects}.")
 
 # Loop through all subjects, loading an MC10 Session for each
 data = {}
