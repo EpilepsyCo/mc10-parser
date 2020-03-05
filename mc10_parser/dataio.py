@@ -138,7 +138,10 @@ def dump(spec, data, anns, s3=None, time=False):
                 s3['resource'].Object(
                     s3['bucket_name'],
                     file_loc + file_name
-                ).put(Body=csv_buffer.getvalue())
+                ).put(
+                    ACL='bucket-owner-full-control',
+                    Body=csv_buffer.getvalue()
+                )
             else:
                 pathlib.Path(file_loc).mkdir(parents=True, exist_ok=True)
                 df.to_csv(file_loc + file_name)
