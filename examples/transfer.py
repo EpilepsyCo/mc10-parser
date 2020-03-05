@@ -7,7 +7,7 @@ import json
 import requests
 import zipfile
 
-import pprint # debugging
+# import pprint # debugging
 
 from mc10_parser import Session
 
@@ -73,11 +73,6 @@ study_response = make_request(
     f"https://mc10cloud.com/api/v1/studies/{study['id']}",
     headers, auth=auth
 )
-
-# TODO
-# device returns sensor types which may have a side of ANY, LEFT, RIGHT, or (MAYBE NONE????)
-# recording returns sensor types in which ANY gets assigned to LEFT or RIGHT
-# need to fix this shit
 
 # Create filenames, types, and sampling rates for this study
 device_configs = []
@@ -237,7 +232,7 @@ for subject in subjects:
                 )
 
         rec_files[rec_filenames[i]] = rec_file
-        print(f"Loaded {rec_filenames[i]}")
+        print(f"Downloaded {rec_filenames[i]} from MC10 cloud")
 
     # Create subject data and metadata
     subject_data = {}

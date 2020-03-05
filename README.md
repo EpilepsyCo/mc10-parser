@@ -219,7 +219,7 @@ python examples/date_shift_s3.py \
 
 ## Direct Transfer
 
-From your virtualenv with dependencies installed, run the following to transfer over an entire study of data:
+From your virtualenv with dependencies installed, run the following to transfer over an entire study of data, skipping already uploaded subjects:
 
 ```
 python examples/transfer.py \
