@@ -1,5 +1,6 @@
 import argparse
 
+from matplotlib import pyplot as plt
 from mc10_parser import Session
 
 # parse in and out paths
@@ -19,3 +20,7 @@ s1 = Session.froms3(
 
 # print session data
 print(s1.data)
+for k1 in list(s1.data):
+    for k2 in list(s1.data[k1]):
+        s1.data[k1][k2].plot()
+plt.show()

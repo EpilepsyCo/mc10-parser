@@ -106,7 +106,7 @@ class Session:
             dict: Session data, with folders as top-level keys and data
                   types as secondary keys.
         """
-        # TODO ASSERT DATA STRUCTURE
+        # TODO assert correct metadata
         data.update(metadata)
         return (metadata, *io_load_mem(data, time=time))
 

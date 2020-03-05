@@ -73,37 +73,47 @@ study_response = make_request(
     headers, auth=auth
 )
 
+# TODO
+# device returns sensor types which may have a side of ANY, LEFT, RIGHT, or (MAYBE NONE????)
+# recording returns sensor types in which ANY gets assigned to LEFT or RIGHT
+# need to fix this shit
+
 # Create filenames, types, and sampling rates for this study
-rec_types = []
-rec_sampling_rates = []
-rec_file_bases = []
+device_configs = []
+device_types = []
+device_sampling_rates = []
+device_folder_bases = []
 for device in study_response['deviceConfigs']:
+    device_configs.append(device['id'])
+
     # create filename
-    filename = device['physicalConfig']['location']
-    filename = filename.lower()
-    rec_file_bases.append(filename)
+    device_filename_base = f"{device['physicalConfig']['location'].lower()}" \
+                           f"_{device['physicalConfig']['side']}".lower()
 
     # create type and sampling rate
-    rec_type = 0
-    rec_sampling_rate = []
+    device_type = 0
+    device_sampling_rate = []
     if 'ACCEL' in device['sensorConfig']['gyro']['mode']:
-        rec_type += 1
+        device_type += 1
         rate = 1000. / device['sensorConfig']['gyro']['periodMs']
-        rec_sampling_rate.append(rate)
+        device_sampling_rate.append(rate)
     if device['sensorConfig'].get('afe'):
-        rec_type += 2
-        rec_sampling_rate.append(device['sensorConfig']['afe']['rate'])
+        device_type += 2
+        device_sampling_rate.append(device['sensorConfig']['afe']['rate'])
     if 'GYRO' in device['sensorConfig']['gyro']['mode']:
-        rec_type += 4
+        device_type += 4
         rate = 1000. / device['sensorConfig']['gyro']['periodMs']
-        rec_sampling_rate.append(rate)
-    rec_types.append(rec_type)
-    rec_sampling_rates.append(rec_sampling_rate)
-study_rec_template = OrderedDict(zip(rec_file_bases, list(map(lambda i: {
-    'type': rec_types[i],
-    'sampling_rate': rec_sampling_rates[i],
+        device_sampling_rate.append(rate)
+    device_types.append(device_type)
+    device_sampling_rates.append(device_sampling_rate)
+    device_folder_bases.append(device_filename_base)
+
+device_template = OrderedDict(zip(device_configs, list(map(lambda i: {
+    'type': device_types[i],
+    'sampling_rate': device_sampling_rates[i],
+    'filename_base': device_folder_bases[i],
     'num': 0
-}, range(len(rec_types))))))
+}, range(len(device_types))))))
 
 # Get activity annotation names
 ann_names = [a['displayName'] for a in study_response['activities']]
@@ -134,63 +144,53 @@ for subject in subjects:
         continue
 
     # Loop through recordings creating folder names
-    rec_filenames = []
     rec_timestamps = []
     rec_types = []
     rec_sampling_rates = []
-    for k in study_rec_template.keys():
-        study_rec_template[k]['num'] = 0
+    rec_filenames = []
+    for k in device_template.keys():
+        device_template[k]['num'] = 0
     for i, rec in enumerate(recs):
-        # create filename
-        filename_base = rec['physicalConfig']['location'].lower()
-        filename = filename_base
-        if rec['physicalConfig']['side'] != 'NONE':
-            filename = f"{filename_base}_" \
-                       f"{rec['physicalConfig']['side']}".lower()
-        filename = f"{filename}_" \
-                   f"{study_rec_template[filename_base]['num']}"
-        study_rec_template[filename_base]['num'] += 1
+        deviceId = rec['deviceConfigId']
 
-        rec_filenames.append(filename)
         rec_timestamps.append(rec['recordingStartTs'])
-        rec_types.append(study_rec_template[filename_base]['type'])
+        rec_types.append(device_template[deviceId]['type'])
         rec_sampling_rates.append(
-            study_rec_template[filename_base]['sampling_rate']
+            device_template[deviceId]['sampling_rate']
         )
+        rec_filename = device_template[deviceId]['filename_base']
+        side = rec['physicalConfig']['side']
+        if side in ['LEFT', 'RIGHT']:
+            rec_filename = f"{rec_filename}_{side.lower()}"
+        rec_filename = f"{rec_filename}_{device_template[deviceId]['num']}"
+        rec_filenames.append(rec_filename)
+        device_template[deviceId]['num'] += 1
 
     # We assume recordings come in ascending, sorted order from MC10
     assert(rec_timestamps == sorted(rec_timestamps))
 
     # Set metadata segments
     rec_segments = 0
-    if len(set(list(map(
-        lambda x: study_rec_template[x]['num'],
-        study_rec_template.keys()
-    )))) == 1:
-        rec_segments = \
-            study_rec_template[list(study_rec_template)[0]]['num']
-
     rec_folders = rec_filenames
-    if rec_segments != 0:
+    # TODO support segments here
+    if False and len(set(list(map(
+        lambda x: device_template[x]['num'],
+        device_template.keys()
+    )))) == 1:
+        rec_segments = device_template[list(device_template)[0]]['num']
+
         # format folders with correct side
-        new_rec_folders = []
-        for folder in list(study_rec_template):
-            filename_idx = 0
-            while folder not in rec_filenames[filename_idx]:
-                filename_idx += 1
-            side = rec_filenames[filename_idx].split('_')[-2]
-            if side == 'left' or side == 'right':
-                new_rec_folders.append(f"{folder}_{side}")
-            else:
-                new_rec_folders.append(folder)
-        rec_folders = new_rec_folders
+        rec_folders = [
+            device_template[key]['filename_base']
+            for key in list(device_template)
+        ]
         rec_types = [
-            study_rec_template[key]['type']
-            for key in list(study_rec_template)
+            device_template[key]['type']
+            for key in list(device_template)
         ]
         rec_sampling_rates = [
-            study_rec_template[key]['sampling_rate']
-            for key in list(study_rec_template)
+            device_template[key]['sampling_rate']
+            for key in list(device_template)
         ]
 
     # Loop through one last time, downloading the data for each recording
@@ -207,7 +207,7 @@ for subject in subjects:
         zip_file = zipfile.ZipFile(BytesIO(zip_file.content))
         rec_file = {}
 
-        # TODO make sure error files are copied
+        # TODO copy error files as well
         for name in zip_file.namelist():
             if '.csv' in name:
                 rec_file[name[:-4]] = BytesIO(
@@ -216,7 +216,6 @@ for subject in subjects:
 
         rec_files[rec_filenames[i]] = rec_file
         print(f"Loaded {rec_filenames[i]}")
-    print(rec_files)
 
     # Create subject data and metadata
     subject_data = {}
@@ -255,8 +254,9 @@ for subject in subjects:
         'ann_names': ann_names,
         'folders': rec_folders,
         'types': rec_types,
-        'sampling_rates': rec_sampling_rates
+        'sampling_rates': rec_sampling_rates,
     })
+    print(subject_meta)
     if (rec_segments != 0):
         subject_meta['segments'] = rec_segments
 
@@ -274,5 +274,3 @@ for subject in subjects:
         f"{subject_identifier}/metadata.json",
         time=True
     )
-
-# for ssubject in data

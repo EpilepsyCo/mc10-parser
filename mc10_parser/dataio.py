@@ -56,7 +56,6 @@ def load(spec, s3=None, time=False):
                         range(spec['segments'])
                     ))
                     if spec.get('data'):
-                        # TODO doesn't work when sensor applied to different sides
                         file_paths = \
                             [spec['data'][key][t] for key in data_folders]
                     else:
@@ -67,9 +66,7 @@ def load(spec, s3=None, time=False):
                 else:
                     data_folders = [folder]
                     if spec.get('data'):
-                        file_paths = [spec['data'][key][t] for key in list(
-                            spec['data']
-                        )]
+                        file_paths = [spec['data'][folder][t]]
                     else:
                         file_paths = [f"{spec['loc']}{folder}/{t}.csv"]
 
