@@ -144,8 +144,9 @@ num_subjects = len(subjects)
 
 if num_subjects == 0:
     print("All subjects alreday transferred.")
-print(f"There are {num_subjects_total} subjects in total. "
-      f"Transferring {num_subjects}.")
+else:
+    print(f"There are {num_subjects_total} subjects in total. "
+          f"Transferring {num_subjects}.")
 
 # Loop through all subjects, loading an MC10 Session for each
 data = {}
