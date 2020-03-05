@@ -158,7 +158,7 @@ def dump(spec, data, anns, s3=None, time=False):
             s3['resource'].Object(
                 s3['bucket_name'],
                 spec['loc'] + spec['meta']
-            ).put(Body=csv_buffer.getvalue())
+            ).put(ACL='bucket-owner-full-control', Body=csv_buffer.getvalue())
         else:
             anns.to_csv(spec['loc'] + spec['meta'])
 
