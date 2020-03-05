@@ -17,6 +17,7 @@ setup(
         'numpy',
         'pandas',
         'pytz',
+        'requests',
         's3fs',
     ],
     packages=['mc10_parser'],

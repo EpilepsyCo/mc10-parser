@@ -144,6 +144,10 @@ time_comp (string, requires labels): Label of the sensor used for doing time
     comparison.
 loc (string): Relative (preferred for s3) or absolute path to metadata file.
 template_path (string): Relative (preferred) or absolute path to template file.
+segments (int): Number of recording segments. Exepects data folders names to be
+    suffixed with _0, _1, ... up to segments - 1.
+metrics_folder (string): Relative (preferred) or absolute path to metrics
+    folder.
 ---
 ```
 Supported timezones can be found on [this Wikipedia list](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) under **TZ database name**.
@@ -211,4 +215,19 @@ python examples/date_shift_s3.py \
     --secret-key <AWS_SECRET_KEY> \
     -b epico-acceldata-upenn
     -o test_study/test_subject_shifted/metadata.json
+```
+
+## Direct Transfer
+
+From your virtualenv with dependencies installed, run the following to transfer over an entire study of data, skipping already uploaded subjects:
+
+```
+python examples/transfer.py \
+    -u $MC10_USERNAME \
+    -p $MC10_PASSWORD \
+    -s $MC10_STUDY_NAME \
+    -b epico-acceldata-upenn \
+    --access-key $AWS_ACCESS \
+    --secret-key $AWS_SECRET \
+    -o $S3_OUTPUT_FOLDER
 ```

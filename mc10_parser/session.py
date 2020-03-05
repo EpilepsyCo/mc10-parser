@@ -13,6 +13,7 @@ from .dictio import (
 )
 from .dataio import (
     load_local as io_load_local,
+    load_mem as io_load_mem,
     load_s3 as io_load_s3,
     dump_local as io_dump_local,
     dump_s3 as io_dump_s3
@@ -22,33 +23,43 @@ from .dataio import (
 class Session:
     """ Represents MC10 recordings for one patient session  """
 
-    def __init__(self, filepath, s3_dict=None, time=False):
-        """ Initialize Session by loading data from filepath. """
-        if s3_dict:
-            self.setup_s3(s3_dict['access_key'], s3_dict['secret_key'])
-            self.metadata, self.data, self.annotations = self.load_s3(
-                s3_dict['bucket_name'], filepath, time=time
-            )
-        else:
-            self.s3_session = None
-            self.s3_resource = None
-            self.metadata, self.data, self.annotations = self.load(
-                filepath, time=time
-            )
+    def __init__(self):
+        """ Initialize Session. """
+        pass
 
     @classmethod
     def fromlocal(cls, filepath, time=False):
         """ Initialize and load Session from filepath. """
-        return cls(filepath, time=time)
+        s = cls()
+        s.set_class_vars(*s.load_local(filepath, time=time))
+        s.s3_session = None
+        s.s3_resource = None
+        return s
+
+    @classmethod
+    def frommem(cls, metadata, data, time=False):
+        """ Initialize and load Session from metadata/data in memory. """
+        s = cls()
+        s.set_class_vars(*s.load_mem(metadata, data, time=time))
+        s.s3_session = None
+        s.s3_resource = None
+        return s
 
     @classmethod
     def froms3(cls, bucket_name, access_key, secret_key, filepath, time=False):
         """ Initialize and load Session from S3 data and path """
-        return cls(filepath, time=time, s3_dict={
-            'bucket_name': bucket_name,
-            'access_key': access_key,
-            'secret_key': secret_key
-        })
+        s = cls()
+        s.setup_s3(access_key, secret_key)
+        s.set_class_vars(
+            *s.load_s3(bucket_name, filepath, time=time)
+        )
+        return s
+
+    def set_class_vars(self, metadata, data, annotations):
+        """ Set Session metadata, data, and annotations. """
+        self.metadata = metadata
+        self.data = data
+        self.annotations = annotations
 
     def setup_s3(self, access_key, secret_key):
         """ Create S3 resource given credentials. """
@@ -62,7 +73,7 @@ class Session:
         )
         self.s3_resource = self.s3_session.resource('s3')
 
-    def load(self, filepath, time=False):
+    def load_local(self, filepath, time=False):
         """ Load Session from metadata specified at filepath.
 
         Parameters:
@@ -80,6 +91,24 @@ class Session:
         metadata = data_dict_from_file(filepath)
         metadata['loc'] = os.path.dirname(filepath) + '/'
         return (metadata, *io_load_local(metadata, time=time))
+
+    def load_mem(self, metadata, data, time=False):
+        """ Load Session from data in memory.
+
+        Parameters:
+            metadata (string): Dict containing Session metadata and data.
+
+        Keyword Arguments:
+            time (bool): set True to print elapsed time.
+
+        Returns:
+            dict: Metadata dictionary for the loaded session.
+            dict: Session data, with folders as top-level keys and data
+                  types as secondary keys.
+        """
+        # TODO assert correct metadata
+        data.update(metadata)
+        return (metadata, *io_load_mem(data, time=time))
 
     def load_s3(self, bucket_name, filepath, time=False):
         """ Load Session from metadata specified at S3 location.

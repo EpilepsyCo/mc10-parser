@@ -22,23 +22,28 @@ def load(spec, s3=None, time=False):
         t0 = timeit.default_timer()
 
     anns = None
+
+    if s3:
+        fs = S3FileSystem(
+            anon=False,
+            key=s3['creds']['access_key'],
+            secret=s3['creds']['secret_key']
+        )
+        s3_prefix = f"s3://{s3['bucket_name']}/"
+
     if spec.get('meta'):
         if s3:
-            fs = S3FileSystem(
-                anon=False,
-                key=s3['creds']['access_key'],
-                secret=s3['creds']['secret_key']
-            )
-            s3_prefix = f"s3://{s3['bucket_name']}/"
-            anns = pd.read_csv(
-                s3_prefix + spec['loc'] + spec['meta'],
-                index_col=0,
-            )
+            meta_loc = s3_prefix + spec['loc'] + spec['meta']
+        elif spec.get('data'):
+            meta_loc = StringIO(spec['meta'])
         else:
-            anns = pd.read_csv(
-                spec['loc'] + spec['meta'],
-                index_col=0,
-            )
+            meta_loc = spec['loc'] + spec['meta'],
+        anns = pd.read_csv(
+            meta_loc
+        )
+        anns.set_index(
+            anns.columns[0], inplace=True
+        )
 
     for i, folder in enumerate(spec['folders']):
         for j, t in enumerate(types):
@@ -50,26 +55,32 @@ def load(spec, s3=None, time=False):
                         lambda x: f"{folder}_{x}",
                         range(spec['segments'])
                     ))
-                    file_paths = list(map(
-                        lambda d: f"{spec['loc']}{d}/{t}.csv",
-                        data_folders,
-                    ))
+                    if spec.get('data'):
+                        file_paths = \
+                            [spec['data'][key][t] for key in data_folders]
+                    else:
+                        file_paths = list(map(
+                            lambda d: f"{spec['loc']}{d}/{t}.csv",
+                            data_folders,
+                        ))
                 else:
                     data_folders = [folder]
-                    file_paths = [f"{spec['loc']}{folder}/{t}.csv"]
+                    if spec.get('data'):
+                        file_paths = [spec['data'][folder][t]]
+                    else:
+                        file_paths = [f"{spec['loc']}{folder}/{t}.csv"]
+
                 for file_path, data_folder in zip(file_paths, data_folders):
                     if not data.get(data_folder):
                         data[data_folder] = {}
                     if s3:
-                        data[data_folder][t] = pd.read_csv(
-                            s3_prefix + file_path,
-                            index_col=0
-                        )
+                        data_loc = s3_prefix + file_path
                     else:
-                        data[data_folder][t] = pd.read_csv(
-                            file_path,
-                            index_col=0,
-                        )
+                        data_loc = file_path
+                    data[data_folder][t] = pd.read_csv(data_loc)
+                    data[data_folder][t].set_index(
+                        data[data_folder][t].columns[0], inplace=True
+                    )
                     data[data_folder][t].index = pd.to_datetime(
                         data[data_folder][t].index, unit='us'
                     )
@@ -88,6 +99,11 @@ def load(spec, s3=None, time=False):
 
 
 def load_local(spec, time=False):
+    """ Load Session from local filesystem. """
+    return load(spec, time=time)
+
+
+def load_mem(spec, time=False):
     """ Load Session from local filesystem. """
     return load(spec, time=time)
 

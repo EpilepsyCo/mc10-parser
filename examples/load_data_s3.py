@@ -1,5 +1,6 @@
 import argparse
 
+from matplotlib import pyplot as plt
 from mc10_parser import Session
 
 # parse in and out paths
