@@ -25,7 +25,7 @@ def data_dict_to_s3(s3_resource, bucket_name, d, filename):
 
     s3_resource.Object(
         bucket_name, d['loc'] + filename
-    ).put(Body=json.dumps(d))
+    ).put(ACL='bucket-owner-full-control', Body=json.dumps(d))
 
 
 def dict_from_file(fp):

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='mc10_parser',
-    version='0.0.5.dev0',
+    version='0.0.5',
     license='MIT,',
     description='Data IO and parsing for MC10 BioStamp Sensors',
     long_description=long_description,
